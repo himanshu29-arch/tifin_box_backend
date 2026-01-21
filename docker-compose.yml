@@ -1,0 +1,33 @@
+version: "3.9"
+
+services:
+  db:
+    image: postgres:15
+    container_name: tifunbox-postgres
+    restart: always
+    environment:
+      POSTGRES_DB: tifunbox_db
+      POSTGRES_USER: tifunbox
+      POSTGRES_PASSWORD: tifunbox
+    ports:
+      - "5432:5432"
+    volumes:
+      - tifunbox_pgdata:/var/lib/postgresql/data
+
+  backend:
+    build: .
+    container_name: tifunbox-backend
+    restart: always
+    depends_on:
+      - db
+    environment:
+      DATABASE_URL: postgresql://tifunbox:tifunbox@db:5432/tifunbox_db
+      PORT: 3000
+    ports:
+      - "3000:3000"
+    volumes:
+      - .:/app
+    command: npm run dev
+
+volumes:
+  tifunbox_pgdata:

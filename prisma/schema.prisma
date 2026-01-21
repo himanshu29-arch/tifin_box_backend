@@ -1,0 +1,168 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+// =========================
+// ENUMS
+// =========================
+
+
+enum UserRole {
+  CUSTOMER
+  CHEF
+  ADMIN
+}
+
+enum OrderStatus {
+  PLACED
+  ACCEPTED
+  PREPARED
+  OUT_FOR_DELIVERY
+  DELIVERED
+  CANCELLED
+}
+
+enum PaymentMode {
+  CASH
+  UPI
+}
+
+enum LedgerStatus {
+  PENDING
+  AVAILABLE
+  WITHDRAWN
+}
+
+// =========================
+// MODELS
+// =========================
+
+
+model User {
+  id           String   @id @default(uuid())
+  role         UserRole
+  name         String
+  email        String   @unique
+  phone        String   @unique
+  passwordHash String
+  isActive     Boolean  @default(false)
+  createdAt    DateTime @default(now())
+
+  otps         Otp[]
+
+  kitchens  Kitchen[]
+  orders    Order[]
+  ledgers   EarningsLedger[]
+  payouts   Payout[]
+}
+
+
+model Otp {
+  id        String   @id @default(uuid())
+  userId    String
+  code      String
+  expiresAt DateTime
+  isUsed    Boolean  @default(false)
+  createdAt DateTime @default(now())
+
+  user      User     @relation(fields: [userId], references: [id])
+
+  @@index([userId])
+}
+
+
+
+model Kitchen {
+  id         String   @id @default(uuid())
+  chefId     String
+  name       String
+  city       String
+  area       String
+  isApproved Boolean  @default(false)
+  isActive   Boolean  @default(true)
+  createdAt  DateTime @default(now())
+
+  chef       User     @relation(fields: [chefId], references: [id])
+  menuItems  MenuItem[]
+  orders     Order[]
+}
+
+model MenuItem {
+  id          String   @id @default(uuid())
+  kitchenId   String
+  name        String
+  description String?
+  price       Int
+  tiffinSize  String
+  isAvailable Boolean  @default(true)
+  createdAt   DateTime @default(now())
+
+  kitchen     Kitchen  @relation(fields: [kitchenId], references: [id])
+}
+
+model Order {
+  id             String      @id @default(uuid())
+  userId         String
+  kitchenId      String
+  status         OrderStatus
+  subtotal       Int
+  deliveryCharge Int
+  platformFee    Int
+  taxAmount      Int
+  totalAmount    Int
+  paymentMode    PaymentMode
+  createdAt      DateTime    @default(now())
+
+  user           User        @relation(fields: [userId], references: [id])
+  kitchen        Kitchen     @relation(fields: [kitchenId], references: [id])
+  items          OrderItem[]
+  payment        Payment?
+}
+
+model OrderItem {
+  id          String @id @default(uuid())
+  orderId     String
+  menuItemId  String
+  quantity    Int
+  price       Int
+
+  order       Order @relation(fields: [orderId], references: [id])
+}
+
+model Payment {
+  id        String      @id @default(uuid())
+  orderId  String      @unique
+  mode      PaymentMode
+  status    String
+  createdAt DateTime    @default(now())
+
+  order     Order       @relation(fields: [orderId], references: [id])
+}
+
+model EarningsLedger {
+  id         String        @id @default(uuid())
+  orderId   String
+  userId    String
+  role      UserRole
+  amount    Int
+  status    LedgerStatus
+  createdAt DateTime      @default(now())
+
+  user       User          @relation(fields: [userId], references: [id])
+}
+
+model Payout {
+  id        String   @id @default(uuid())
+  userId   String
+  amount   Int
+  method   String
+  status   String
+  createdAt DateTime @default(now())
+
+  user     User     @relation(fields: [userId], references: [id])
+}
