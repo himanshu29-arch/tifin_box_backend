@@ -2,6 +2,8 @@ import prisma from "../../config/prisma";
 import bcrypt from "bcrypt";
 import jwt from "jsonwebtoken";
 import { sendOtpEmail } from "./email.service";
+import { ApiError } from "../../utils/api-error";
+
 
 const OTP_EXPIRY_MINUTES = 5;
 
@@ -21,7 +23,7 @@ export async function registerUser(data: {
   });
 
   if (existing) {
-    throw new Error("User already exists");
+    throw new ApiError("User already exists", 409);
   }
 
   const passwordHash = await bcrypt.hash(
@@ -51,7 +53,7 @@ export async function registerUser(data: {
 
   await sendOtpEmail(user.email, otp);
 
-  return { message: "OTP sent to email" };
+  return { message: "OTP sent to email",otp };
 }
 
 export async function verifyOtp(email: string, otp: string) {
@@ -59,7 +61,9 @@ export async function verifyOtp(email: string, otp: string) {
     where: { email },
   });
 
-  if (!user) throw new Error("User not found");
+   if (!user) {
+     throw new ApiError("User not found", 404);
+   }
 
   const record = await prisma.otp.findFirst({
     where: {
@@ -70,7 +74,9 @@ export async function verifyOtp(email: string, otp: string) {
     },
   });
 
-  if (!record) throw new Error("Invalid or expired OTP");
+    if (!record) {
+      throw new ApiError("Invalid or expired OTP", 400);
+    }
 
   await prisma.otp.update({
     where: { id: record.id },
@@ -97,11 +103,14 @@ export async function loginUser(email: string, password: string) {
   });
 
   if (!user || !user.isActive) {
-    throw new Error("Invalid credentials");
+    throw new ApiError("Invalid credentials", 401);
   }
 
   const isValid = await bcrypt.compare(password, user.passwordHash);
-  if (!isValid) throw new Error("Invalid credentials");
+
+   if (!isValid) {
+     throw new ApiError("Invalid credentials", 401);
+   }
 
   const token = jwt.sign(
     { userId: user.id, role: user.role },
@@ -110,4 +119,24 @@ export async function loginUser(email: string, password: string) {
   );
 
   return { token, user };
+}
+export async function getMe(userId: string) {
+  const user = await prisma.user.findUnique({
+    where: { id: userId },
+    select: {
+      id: true,
+      name: true,
+      email: true,
+      phone: true,
+      role: true,
+      isActive: true,
+      createdAt: true,
+    },
+  });
+
+  if (!user) {
+    throw new ApiError("User not found", 404);
+  }
+
+  return user;
 }

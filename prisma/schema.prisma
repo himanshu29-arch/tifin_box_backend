@@ -1,5 +1,6 @@
 generator client {
-  provider = "prisma-client-js"
+  provider      = "prisma-client-js"
+  binaryTargets = ["native", "linux-arm64-openssl-3.0.x"]
 }
 
 datasource db {
@@ -18,30 +19,26 @@ enum UserRole {
   ADMIN
 }
 
+enum TiffinSize {
+  HALF
+  FULL
+}
+
 enum OrderStatus {
   PLACED
   ACCEPTED
   PREPARED
   OUT_FOR_DELIVERY
   DELIVERED
-  CANCELLED
 }
 
 enum PaymentMode {
-  CASH
   UPI
-}
-
-enum LedgerStatus {
-  PENDING
-  AVAILABLE
-  WITHDRAWN
 }
 
 // =========================
 // MODELS
 // =========================
-
 
 model User {
   id           String   @id @default(uuid())
@@ -54,14 +51,13 @@ model User {
   createdAt    DateTime @default(now())
 
   otps         Otp[]
-
-  kitchens  Kitchen[]
-  orders    Order[]
-  ledgers   EarningsLedger[]
-  payouts   Payout[]
+  orders       Order[]
+  cart         Cart?    // ✅ ADD THIS
 }
 
-
+// -------------------------
+// OTP
+// -------------------------
 model Otp {
   id        String   @id @default(uuid())
   userId    String
@@ -75,45 +71,77 @@ model Otp {
   @@index([userId])
 }
 
-
+// -------------------------
+// SINGLE KITCHEN
+// -------------------------
 
 model Kitchen {
   id         String   @id @default(uuid())
-  chefId     String
   name       String
-  city       String
-  area       String
-  isApproved Boolean  @default(false)
-  isActive   Boolean  @default(true)
+  description String?
   createdAt  DateTime @default(now())
 
-  chef       User     @relation(fields: [chefId], references: [id])
   menuItems  MenuItem[]
   orders     Order[]
 }
 
+// -------------------------
+// MENU ITEMS
+// -------------------------
 model MenuItem {
   id          String   @id @default(uuid())
   kitchenId   String
   name        String
   description String?
   price       Int
-  tiffinSize  String
+  tiffinSize  TiffinSize
+  imageUrl    String?
   isAvailable Boolean  @default(true)
   createdAt   DateTime @default(now())
 
   kitchen     Kitchen  @relation(fields: [kitchenId], references: [id])
+  cartItems   CartItem[] // ✅ ADD THIS
+  @@index([kitchenId])
+}
+// -------------------------
+// Carts
+// -------------------------
+model Cart {
+  id        String   @id @default(uuid())
+  userId    String   @unique
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  user  User       @relation(fields: [userId], references: [id])
+  items CartItem[]
+}
+// -------------------------
+// Cart Items
+// -------------------------
+model CartItem {
+  id         String   @id @default(uuid())
+  cartId    String
+  menuItemId String
+  quantity  Int
+  price     Int       // snapshot price
+  createdAt DateTime @default(now())
+
+  cart     Cart     @relation(fields: [cartId], references: [id])
+  menuItem MenuItem @relation(fields: [menuItemId], references: [id])
+
+  @@unique([cartId, menuItemId])
 }
 
+
+// -------------------------
+// ORDERS
+// -------------------------
 model Order {
   id             String      @id @default(uuid())
   userId         String
   kitchenId      String
   status         OrderStatus
   subtotal       Int
-  deliveryCharge Int
-  platformFee    Int
-  taxAmount      Int
   totalAmount    Int
   paymentMode    PaymentMode
   createdAt      DateTime    @default(now())
@@ -124,6 +152,9 @@ model Order {
   payment        Payment?
 }
 
+// -------------------------
+// ORDER ITEMS
+// -------------------------
 model OrderItem {
   id          String @id @default(uuid())
   orderId     String
@@ -134,35 +165,15 @@ model OrderItem {
   order       Order @relation(fields: [orderId], references: [id])
 }
 
+// -------------------------
+// PAYMENT
+// -------------------------
 model Payment {
   id        String      @id @default(uuid())
   orderId  String      @unique
   mode      PaymentMode
   status    String
-  createdAt DateTime    @default(now())
+  createdAt DateTime   @default(now())
 
-  order     Order       @relation(fields: [orderId], references: [id])
-}
-
-model EarningsLedger {
-  id         String        @id @default(uuid())
-  orderId   String
-  userId    String
-  role      UserRole
-  amount    Int
-  status    LedgerStatus
-  createdAt DateTime      @default(now())
-
-  user       User          @relation(fields: [userId], references: [id])
-}
-
-model Payout {
-  id        String   @id @default(uuid())
-  userId   String
-  amount   Int
-  method   String
-  status   String
-  createdAt DateTime @default(now())
-
-  user     User     @relation(fields: [userId], references: [id])
+  order     Order      @relation(fields: [orderId], references: [id])
 }

@@ -1,29 +1,46 @@
-import { Request, Response } from "express";
-import { registerUser, verifyOtp, loginUser } from "./auth.service";
+import { Request, Response, NextFunction } from "express";
+import { registerUser, verifyOtp, loginUser, getMe } from "./auth.service";
+import { AuthenticatedRequest } from "../../types/auth-request";
 
-export async function register(req: Request, res: Response) {
+export async function register(req: Request, res: Response, next: NextFunction) {
   try {
-    const result = await registerUser(req.body);
-    res.json(result);
-  } catch (err: any) {
-    res.status(400).json({ error: err.message });
+   const result = await registerUser(req.body);
+   res.json({ success: true, data: result });
+  } catch (err) {
+    next(err);
+
   }
 }
 
-export async function verify(req: Request, res: Response) {
+export async function verify(req: Request, res: Response, next: NextFunction) {
   try {
     const result = await verifyOtp(req.body.email, req.body.otp);
-    res.json(result);
-  } catch (err: any) {
-    res.status(400).json({ error: err.message });
+    res.json({ success: true, data: result });
+  } catch (err) {
+    next(err);
   }
 }
 
-export async function login(req: Request, res: Response) {
+export async function login(req: Request, res: Response, next: NextFunction) {
   try {
     const result = await loginUser(req.body.email, req.body.password);
-    res.json(result);
-  } catch (err: any) {
-    res.status(400).json({ error: err.message });
+    res.json({ success: true, data: result });
+  } catch (err) {
+     next(err);
   }
 }
+
+
+export async function me(req: Request, res: Response, next: NextFunction) {
+  try {
+    const authReq = req as AuthenticatedRequest;
+    const user = await getMe(authReq.user.userId);
+    res.json({ success: true, data: user });
+  } catch (err) {
+      next(err);
+  }
+}
+
+// Notice:
+// No if (!req.user) needed anymore
+// TypeScript guarantees req.user exists
