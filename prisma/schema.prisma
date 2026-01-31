@@ -8,10 +8,11 @@ datasource db {
   url      = env("DATABASE_URL")
 }
 
+//
 // =========================
 // ENUMS
 // =========================
-
+//
 
 enum UserRole {
   CUSTOMER
@@ -24,6 +25,11 @@ enum TiffinSize {
   FULL
 }
 
+enum FoodType {
+  VEG
+  NON_VEG
+}
+
 enum OrderStatus {
   PLACED
   ACCEPTED
@@ -34,11 +40,14 @@ enum OrderStatus {
 
 enum PaymentMode {
   UPI
+  COD
 }
 
+//
 // =========================
 // MODELS
 // =========================
+//
 
 model User {
   id           String   @id @default(uuid())
@@ -50,14 +59,18 @@ model User {
   isActive     Boolean  @default(false)
   createdAt    DateTime @default(now())
 
-  otps         Otp[]
-  orders       Order[]
-  cart         Cart?    // ✅ ADD THIS
+  otps      Otp[]
+  orders    Order[]
+  cart      Cart?
+  addresses Address[]
 }
 
+//
 // -------------------------
 // OTP
 // -------------------------
+//
+
 model Otp {
   id        String   @id @default(uuid())
   userId    String
@@ -66,46 +79,127 @@ model Otp {
   isUsed    Boolean  @default(false)
   createdAt DateTime @default(now())
 
-  user      User     @relation(fields: [userId], references: [id])
+  user User @relation(fields: [userId], references: [id])
 
   @@index([userId])
 }
 
+//
+// -------------------------
+// ADDRESS
+// -------------------------
+//
+
+model Address {
+  id     String @id @default(uuid())
+  userId String
+
+  receiverName  String
+  contactNumber String
+  houseNumber   String
+  sector        String
+  landmark      String?
+  postcode      String
+  mapUrl        String?
+
+  isDefault Boolean  @default(false)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  user   User    @relation(fields: [userId], references: [id])
+  orders Order[]
+
+  @@index([userId])
+}
+
+//
 // -------------------------
 // SINGLE KITCHEN
 // -------------------------
+//
 
 model Kitchen {
-  id         String   @id @default(uuid())
-  name       String
+  id          String   @id @default(uuid())
+  name        String
   description String?
-  createdAt  DateTime @default(now())
+  createdAt   DateTime @default(now())
 
-  menuItems  MenuItem[]
-  orders     Order[]
+  menuItems MenuItem[]
+  orders    Order[]
 }
 
+//
+// -------------------------
+// CATEGORY
+// -------------------------
+//
+
+model Category {
+  id        String   @id @default(uuid())
+  name      String   @unique
+  imageUrl  String?
+  createdAt DateTime @default(now())
+
+  menuItems MenuItem[]
+}
+
+//
 // -------------------------
 // MENU ITEMS
 // -------------------------
+//
+
 model MenuItem {
-  id          String   @id @default(uuid())
-  kitchenId   String
+  id         String @id @default(uuid())
+  kitchenId  String
+  categoryId String
+
   name        String
   description String?
   price       Int
-  tiffinSize  TiffinSize
-  imageUrl    String?
+
+  foodType   FoodType
+  tiffinSize TiffinSize?
+  imageUrl   String?
+
   isAvailable Boolean  @default(true)
   createdAt   DateTime @default(now())
 
-  kitchen     Kitchen  @relation(fields: [kitchenId], references: [id])
-  cartItems   CartItem[] // ✅ ADD THIS
+  kitchen   Kitchen         @relation(fields: [kitchenId], references: [id])
+  category  Category        @relation(fields: [categoryId], references: [id])
+  nutrition NutritionFact[]
+
+  cartItems  CartItem[]
+  orderItems OrderItem[]
+
   @@index([kitchenId])
+  @@index([categoryId])
 }
+
+//
 // -------------------------
-// Carts
+// NUTRITION FACTS (KEY–VALUE)
 // -------------------------
+//
+
+model NutritionFact {
+  id         String  @id @default(uuid())
+  menuItemId String
+  key        String
+  value      String
+  unit       String?
+
+  menuItem MenuItem @relation(fields: [menuItemId], references: [id])
+
+  @@index([menuItemId])
+}
+
+//
+// -------------------------
+// CART
+// -------------------------
+//
+
 model Cart {
   id        String   @id @default(uuid())
   userId    String   @unique
@@ -115,16 +209,20 @@ model Cart {
   user  User       @relation(fields: [userId], references: [id])
   items CartItem[]
 }
+
+//
 // -------------------------
-// Cart Items
+// CART ITEMS
 // -------------------------
+//
+
 model CartItem {
   id         String   @id @default(uuid())
-  cartId    String
+  cartId     String
   menuItemId String
-  quantity  Int
-  price     Int       // snapshot price
-  createdAt DateTime @default(now())
+  quantity   Int
+  price      Int
+  createdAt  DateTime @default(now())
 
   cart     Cart     @relation(fields: [cartId], references: [id])
   menuItem MenuItem @relation(fields: [menuItemId], references: [id])
@@ -132,48 +230,62 @@ model CartItem {
   @@unique([cartId, menuItemId])
 }
 
-
+//
 // -------------------------
 // ORDERS
 // -------------------------
-model Order {
-  id             String      @id @default(uuid())
-  userId         String
-  kitchenId      String
-  status         OrderStatus
-  subtotal       Int
-  totalAmount    Int
-  paymentMode    PaymentMode
-  createdAt      DateTime    @default(now())
+//
 
-  user           User        @relation(fields: [userId], references: [id])
-  kitchen        Kitchen     @relation(fields: [kitchenId], references: [id])
-  items          OrderItem[]
-  payment        Payment?
+model Order {
+  id        String @id @default(uuid())
+  userId    String
+  kitchenId String
+  addressId String
+
+  status      OrderStatus
+  subtotal    Int
+  totalAmount Int
+  paymentMode PaymentMode
+  createdAt   DateTime    @default(now())
+
+  user    User        @relation(fields: [userId], references: [id])
+  kitchen Kitchen     @relation(fields: [kitchenId], references: [id])
+  address Address     @relation(fields: [addressId], references: [id])
+  items   OrderItem[]
+  payment Payment?
 }
 
+//
 // -------------------------
 // ORDER ITEMS
 // -------------------------
-model OrderItem {
-  id          String @id @default(uuid())
-  orderId     String
-  menuItemId  String
-  quantity    Int
-  price       Int
+//
 
-  order       Order @relation(fields: [orderId], references: [id])
+model OrderItem {
+  id         String @id @default(uuid())
+  orderId    String
+  menuItemId String
+  quantity   Int
+  price      Int
+
+  order    Order    @relation(fields: [orderId], references: [id])
+  menuItem MenuItem @relation(fields: [menuItemId], references: [id])
+
+  @@index([menuItemId])
 }
 
+//
 // -------------------------
 // PAYMENT
 // -------------------------
+//
+
 model Payment {
   id        String      @id @default(uuid())
-  orderId  String      @unique
+  orderId   String      @unique
   mode      PaymentMode
   status    String
-  createdAt DateTime   @default(now())
+  createdAt DateTime    @default(now())
 
-  order     Order      @relation(fields: [orderId], references: [id])
+  order Order @relation(fields: [orderId], references: [id])
 }

@@ -53,7 +53,7 @@ export async function registerUser(data: {
 
   await sendOtpEmail(user.email, otp);
 
-  return { message: "OTP sent to email",otp };
+  return { message: "OTP sent to email" };
 }
 
 export async function verifyOtp(email: string, otp: string) {
@@ -139,4 +139,60 @@ export async function getMe(userId: string) {
   }
 
   return user;
+}
+
+
+export async function updateProfile(
+  userId: string,
+  data: {
+    name?: string;
+    phone?: string;
+    password?: string;
+  },
+) {
+  const user = await prisma.user.findUnique({
+    where: { id: userId },
+  });
+
+  if (!user) {
+    throw new ApiError("User not found", 404);
+  }
+
+  // Phone uniqueness check
+  if (data.phone && data.phone !== user.phone) {
+    const exists = await prisma.user.findUnique({
+      where: { phone: data.phone },
+    });
+
+    if (exists) {
+      throw new ApiError("Phone number already in use", 409);
+    }
+  }
+
+  let passwordHash = user.passwordHash;
+
+  if (data.password) {
+    passwordHash = await bcrypt.hash(
+      data.password,
+      Number(process.env.BCRYPT_ROUNDS),
+    );
+  }
+
+  return prisma.user.update({
+    where: { id: userId },
+    data: {
+      name: data.name ?? user.name,
+      phone: data.phone ?? user.phone,
+      passwordHash,
+    },
+    select: {
+      id: true,
+      name: true,
+      email: true,
+      phone: true,
+      role: true,
+      isActive: true,
+      createdAt: true,
+    },
+  });
 }

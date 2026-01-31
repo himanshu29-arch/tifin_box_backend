@@ -1,10 +1,17 @@
 /** @format */
+
 import { Request, Response, NextFunction } from "express";
 import { AuthenticatedRequest } from "../../types/auth-request";
-import { placeOrderFromCart, getAllOrders, getMyOrders, updateOrderStatus } from "./order.service";
+import {
+  placeOrderFromCart,
+  getMyOrders,
+  getAllOrders,
+  updateOrderStatus,
+  markOrderPaid,
+} from "./order.service";
 
 /**
- * Customer: Place Order
+ * Customer: Place order
  */
 export const placeOrder = async (
   req: Request,
@@ -13,8 +20,13 @@ export const placeOrder = async (
 ) => {
   try {
     const authReq = req as AuthenticatedRequest;
+    const { addressId, paymentMode } = req.body;
 
-    const order = await placeOrderFromCart(authReq.user.userId);
+    const order = await placeOrderFromCart(
+      authReq.user.userId,
+      addressId,
+      paymentMode,
+    );
 
     res.json({
       success: true,
@@ -32,17 +44,13 @@ export const placeOrder = async (
 export const myOrders = async (
   req: Request,
   res: Response,
-  next: NextFunction
+  next: NextFunction,
 ) => {
   try {
     const authReq = req as AuthenticatedRequest;
-
     const orders = await getMyOrders(authReq.user.userId);
 
-    res.json({
-      success: true,
-      data: orders,
-    });
+    res.json({ success: true, data: orders });
   } catch (err) {
     next(err);
   }
@@ -54,15 +62,11 @@ export const myOrders = async (
 export const listOrders = async (
   _req: Request,
   res: Response,
-  next: NextFunction
+  next: NextFunction,
 ) => {
   try {
     const orders = await getAllOrders();
-
-    res.json({
-      success: true,
-      data: orders,
-    });
+    res.json({ success: true, data: orders });
   } catch (err) {
     next(err);
   }
@@ -74,17 +78,37 @@ export const listOrders = async (
 export const updateStatus = async (
   req: Request,
   res: Response,
-  next: NextFunction
+  next: NextFunction,
 ) => {
   try {
     const { status } = req.body;
-
     const order = await updateOrderStatus(req.params.id, status);
 
     res.json({
       success: true,
       message: "Order status updated",
       data: order,
+    });
+  } catch (err) {
+    next(err);
+  }
+};
+
+/**
+ * Admin: Mark order as paid (COD)
+ */
+export const markPaid = async (
+  req: Request,
+  res: Response,
+  next: NextFunction,
+) => {
+  try {
+    const payment = await markOrderPaid(req.params.id);
+
+    res.json({
+      success: true,
+      message: "Order marked as paid",
+      data: payment,
     });
   } catch (err) {
     next(err);

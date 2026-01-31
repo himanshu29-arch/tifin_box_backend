@@ -1,7 +1,7 @@
 import { Request, Response, NextFunction } from "express";
 import { registerUser, verifyOtp, loginUser, getMe } from "./auth.service";
 import { AuthenticatedRequest } from "../../types/auth-request";
-
+import { updateProfile as updateProfileService } from "./auth.service";
 export async function register(req: Request, res: Response, next: NextFunction) {
   try {
    const result = await registerUser(req.body);
@@ -38,6 +38,29 @@ export async function me(req: Request, res: Response, next: NextFunction) {
     res.json({ success: true, data: user });
   } catch (err) {
       next(err);
+  }
+}
+
+export async function updateProfile(
+  req: Request,
+  res: Response,
+  next: NextFunction,
+) {
+  try {
+    const authReq = req as AuthenticatedRequest;
+
+    const user = await updateProfileService(
+      authReq.user.userId,
+      req.body,
+    );
+
+    res.json({
+      success: true,
+      message: "Profile updated successfully",
+      data: user,
+    });
+  } catch (err) {
+    next(err);
   }
 }
 

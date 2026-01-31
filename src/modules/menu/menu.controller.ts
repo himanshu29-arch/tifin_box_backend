@@ -7,7 +7,7 @@ import {
   updateMenuItem,
   getPublicMenu,
 } from "./menu.service";
-
+import { uploadImageToGCP } from "../../utils/uploadToGcp";
 export async function create(req: Request, res: Response, next: NextFunction) {
   try {
     const menu = await createMenuItem(req.body);
@@ -69,10 +69,39 @@ export async function publicMenu(
   next: NextFunction,
 ) {
   try {
-    const menu = await getPublicMenu();
+    const menu = await getPublicMenu({
+      categoryId: req.query.categoryId as string,
+      foodType: req.query.foodType as "VEG" | "NON_VEG",
+    });
+
     res.json({
       success: true,
       data: menu,
+    });
+  } catch (err) {
+    next(err);
+  }
+}
+
+
+export async function uploadMenuImage(
+  req: Request,
+  res: Response,
+  next: NextFunction,
+) {
+  try {
+    if (!req.file) {
+      throw new Error("Image file is required");
+    }
+
+    const imageUrl = await uploadImageToGCP(
+      req.file,
+      "menu",
+    );
+
+    res.json({
+      success: true,
+      imageUrl,
     });
   } catch (err) {
     next(err);

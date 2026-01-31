@@ -1,8 +1,8 @@
 import { Router } from "express";
-import { register, verify, login,me } from "./auth.controller";
+import { register, verify, login,me ,updateProfile} from "./auth.controller";
 import { authMiddleware } from "../../middleware/auth.middleware";
 import { validate } from "../../middleware/validate.middleware";
-import { registerSchema, loginSchema, verifyOtpSchema } from "./auth.schema";
+import { registerSchema, loginSchema, verifyOtpSchema, updateProfileSchema } from "./auth.schema";
 const router = Router();
 
 /**
@@ -106,6 +106,43 @@ router.post("/login",validate(loginSchema) ,login);
  *         description: Logged-in user details
  */
 router.get("/me", authMiddleware,  me);
+
+/**
+ * @swagger
+ * /api/auth/profile:
+ *   put:
+ *     summary: Update user profile
+ *     tags: [Auth]
+ *     security:
+ *       - bearerAuth: []
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             properties:
+ *               name:
+ *                 type: string
+ *               phone:
+ *                 type: string
+ *               password:
+ *                 type: string
+ *                 description: Optional. Updates password if provided.
+ *     responses:
+ *       200:
+ *         description: Profile updated successfully
+ *       400:
+ *         description: Validation error
+ *       401:
+ *         description: Unauthorized
+ */
+router.put(
+  "/profile",
+  authMiddleware,
+  validate(updateProfileSchema),
+  updateProfile,
+);
 
 
 export default router;

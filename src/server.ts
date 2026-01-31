@@ -7,6 +7,8 @@ import kitchenRoutes from "./modules/kitchen/kitchen.routes";
 import menuRoutes from "./modules/menu/menu.routes";
 import cartRoutes from "./modules/cart/cart.routes";
 import orderRoutes from "./modules/order/order.routes";
+import addressRoutes from "./modules/address/address.route";
+import categoryRoutes from "./modules/category/category.routes";
 import { errorMiddleware } from "./middleware/error.middleware";
 const app = express();
 
@@ -25,6 +27,8 @@ app.use("/api/kitchen", kitchenRoutes);
 app.use("/api/menu", menuRoutes);
 app.use("/api/cart", cartRoutes);
 app.use("/api/orders", orderRoutes);
+app.use("/api/addresses", addressRoutes);
+app.use("/api/categories", categoryRoutes);
 
 
 // Health check

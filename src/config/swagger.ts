@@ -24,6 +24,11 @@ const swaggerOptions = {
         },
       },
     },
+    security: [
+      {
+        bearerAuth: [],
+      },
+    ],
   },
   apis: ["./src/modules/**/*.ts"],
 };
