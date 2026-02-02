@@ -36,8 +36,8 @@ const router = Router();
  */
 router.post(
   "/",
-  authMiddleware,
-  requireRole("ADMIN"),
+  // authMiddleware,
+  // requireRole("ADMIN"),
   validate(createCategorySchema),
   create,
 );
@@ -86,8 +86,8 @@ router.get("/", list);
  */
 router.put(
   "/:id",
-  authMiddleware,
-  requireRole("ADMIN"),
+  // authMiddleware,
+  // requireRole("ADMIN"),
   validate(updateCategorySchema),
   update,
 );
