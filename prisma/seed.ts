@@ -37,12 +37,23 @@ async function main() {
   });
 
   /* ---------------- KITCHEN ---------------- */
-  const kitchen = await prisma.kitchen.create({
+let kitchen = await prisma.kitchen.findFirst();
+
+if (!kitchen) {
+  kitchen = await prisma.kitchen.create({
     data: {
       name: "TifunBox Central Kitchen",
       description: "Home style daily tiffin service",
+      type: "VEG",
+      imageUrl: "https://storage.googleapis.com/demo/kitchen.png",
+      latitude: 20.2961,
+      longitude: 85.8245,
+      address: "Bhubaneswar, Odisha",
     },
   });
+}
+
+
 
   /* ---------------- CATEGORIES ---------------- */
   const categories = await Promise.all(
@@ -74,17 +85,21 @@ async function main() {
   });
 
   /* ---------------- ADDRESS ---------------- */
-  await prisma.address.create({
-    data: {
-      userId: customer.id,
-      receiverName: "Test Customer",
-      contactNumber: "9111111111",
-      houseNumber: "A-203",
-      sector: "Sector 21",
-      postcode: "751024",
-      isDefault: true,
-    },
-  });
+await prisma.address.create({
+  data: {
+    userId: customer.id,
+    receiverName: "Test Customer",
+    contactNumber: "9111111111",
+    houseNumber: "A-203",
+    sector: "Sector 21",
+    postcode: "751024",
+    latitude: 20.2961,
+    longitude: 85.8245,
+    type: "HOME",
+    isDefault: true,
+  },
+});
+
 
   console.log("✅ Seeding completed successfully");
 }
