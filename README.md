@@ -170,3 +170,11 @@ npx prisma migrate deploy
 
 npx prisma generate
 npx prisma db seed
+
+
+Code change
+ → prisma migrate dev (local)
+ → commit migrations
+ → deploy
+ → prisma migrate deploy (prod)
+ → prisma db seed (safe, idempotent)

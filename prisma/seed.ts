@@ -67,26 +67,17 @@ const categories = await Promise.all(
 );
 
   /* ---------------- MENU ITEMS ---------------- */
-  await prisma.menuItem.createMany({
-    data: [
-      {
-        name: "Veg Thali",
-        price: 150,
-        foodType: "VEG",
-        kitchenId: kitchen.id,
-        categoryId: categories[0].id,
-        isAvailable: true,
-      },
-      {
-        name: "Paneer Butter Masala",
-        price: 180,
-        foodType: "VEG",
-        kitchenId: kitchen.id,
-        categoryId: categories[4].id,
-        isAvailable: true,
-      },
-    ],
-  });
+await prisma.menuItem.create({
+  data: {
+    name: "Veg Thali",
+    price: 150,
+    foodType: "VEG",
+    kitchenId: kitchen.id,
+    categoryId: categories[0].id,
+    isAvailable: true,
+  },
+});
+
 
   /* ---------------- ADDRESS ---------------- */
 await prisma.address.create({
