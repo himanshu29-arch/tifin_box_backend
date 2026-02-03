@@ -7,6 +7,7 @@ import {
   listOrders,
   updateStatus,
   markPaid,
+  activeOrders,
 } from "./order.controller";
 import { authMiddleware } from "../../middleware/auth.middleware";
 import { requireRole } from "../../middleware/role.middleware";
@@ -108,6 +109,22 @@ router.patch(
   authMiddleware,
   requireRole("ADMIN"),
   markPaid,
+);
+/**
+ * @swagger
+ * /api/orders/active:
+ *   get:
+ *     summary: Get active orders (Customer)
+ *     description: Orders that are not yet delivered
+ *     tags: [Order]
+ *     security:
+ *       - bearerAuth: []
+ */
+router.get(
+  "/active",
+  authMiddleware,
+  requireRole("CUSTOMER"),
+  activeOrders,
 );
 
 export default router;

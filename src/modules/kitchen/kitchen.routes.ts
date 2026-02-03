@@ -5,7 +5,11 @@ import { create, get, update } from "./kitchen.controller";
 import { authMiddleware } from "../../middleware/auth.middleware";
 import { requireRole } from "../../middleware/role.middleware";
 import { validate } from "../../middleware/validate.middleware";
-import { createKitchenSchema, updateKitchenSchema } from "./kitchen.schema";
+import {
+  createKitchenSchema,
+  updateKitchenSchema,
+} from "./kitchen.schema";
+import { upload } from "../../middleware/upload.middleware";
 
 const router = Router();
 
@@ -25,7 +29,6 @@ const router = Router();
  *               properties:
  *                 success:
  *                   type: boolean
- *                   example: true
  *                 data:
  *                   type: object
  *                   properties:
@@ -33,17 +36,25 @@ const router = Router();
  *                       type: string
  *                     name:
  *                       type: string
- *                       example: "TifunBox Central Kitchen"
  *                     description:
  *                       type: string
- *                       example: "Main kitchen for daily tiffin service"
+ *                     imageUrl:
+ *                       type: string
+ *                     type:
+ *                       type: string
+ *                       enum: [VEG, NON_VEG, BOTH]
+ *                     latitude:
+ *                       type: number
+ *                     longitude:
+ *                       type: number
+ *                     address:
+ *                       type: string
  *                     createdAt:
  *                       type: string
  *                       format: date-time
  *       404:
  *         description: Kitchen not found
  */
-
 router.get("/", get);
 
 /**
@@ -57,18 +68,29 @@ router.get("/", get);
  *     requestBody:
  *       required: true
  *       content:
- *         application/json:
+ *         multipart/form-data:
  *           schema:
  *             type: object
  *             required:
  *               - name
+ *               - type
  *             properties:
  *               name:
  *                 type: string
- *                 example: "TifunBox Central Kitchen"
  *               description:
  *                 type: string
- *                 example: "Main kitchen for daily tiffin service"
+ *               type:
+ *                 type: string
+ *                 enum: [VEG, NON_VEG, BOTH]
+ *               latitude:
+ *                 type: number
+ *               longitude:
+ *                 type: number
+ *               address:
+ *                 type: string
+ *               image:
+ *                 type: string
+ *                 format: binary
  *     responses:
  *       200:
  *         description: Kitchen created successfully
@@ -83,10 +105,10 @@ router.post(
   "/",
   authMiddleware,
   requireRole("ADMIN"),
+  upload.single("image"),
   validate(createKitchenSchema),
   create,
 );
-
 
 /**
  * @swagger
@@ -99,16 +121,26 @@ router.post(
  *     requestBody:
  *       required: true
  *       content:
- *         application/json:
+ *         multipart/form-data:
  *           schema:
  *             type: object
  *             properties:
  *               name:
  *                 type: string
- *                 example: "Updated Kitchen Name"
  *               description:
  *                 type: string
- *                 example: "Updated description"
+ *               type:
+ *                 type: string
+ *                 enum: [VEG, NON_VEG, BOTH]
+ *               latitude:
+ *                 type: number
+ *               longitude:
+ *                 type: number
+ *               address:
+ *                 type: string
+ *               image:
+ *                 type: string
+ *                 format: binary
  *     responses:
  *       200:
  *         description: Kitchen updated successfully
@@ -123,9 +155,9 @@ router.put(
   "/",
   authMiddleware,
   requireRole("ADMIN"),
+  upload.single("image"),
   validate(updateKitchenSchema),
   update,
 );
-
 
 export default router;

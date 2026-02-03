@@ -6,8 +6,7 @@ import {
   myMenu,
   toggle,
   update,
-  publicMenu,
-  uploadMenuImage,
+  publicMenu
 } from "./menu.controller";
 import { authMiddleware } from "../../middleware/auth.middleware";
 import { requireRole } from "../../middleware/role.middleware";
@@ -184,9 +183,9 @@ router.patch("/:id/toggle", authMiddleware, requireRole("CHEF"), toggle);
 
 /**
  * @swagger
- * /api/menu/upload-image:
+ * /api/menu:
  *   post:
- *     summary: Upload menu image (Chef only)
+ *     summary: Create menu item (Chef only)
  *     tags: [Menu]
  *     security:
  *       - bearerAuth: []
@@ -196,33 +195,37 @@ router.patch("/:id/toggle", authMiddleware, requireRole("CHEF"), toggle);
  *         multipart/form-data:
  *           schema:
  *             type: object
- *             required:
- *               - image
+ *             required: [name, price, categoryId, foodType]
  *             properties:
+ *               name:
+ *                 type: string
+ *               description:
+ *                 type: string
+ *               price:
+ *                 type: number
+ *               categoryId:
+ *                 type: string
+ *               foodType:
+ *                 type: string
+ *                 enum: [VEG, NON_VEG]
+ *               tiffinSize:
+ *                 type: string
+ *                 enum: [HALF, FULL]
+ *               nutrition:
+ *                 type: string
+ *                 description: JSON string
  *               image:
  *                 type: string
  *                 format: binary
- *     responses:
- *       200:
- *         description: Image uploaded successfully
- *         content:
- *           application/json:
- *             schema:
- *               type: object
- *               properties:
- *                 success:
- *                   type: boolean
- *                   example: true
- *                 imageUrl:
- *                   type: string
- *                   example: https://storage.googleapis.com/bucket/menu/xyz.png
  */
 router.post(
-  "/upload-image",
+  "/",
   authMiddleware,
   requireRole("CHEF"),
   upload.single("image"),
-  uploadMenuImage,
+  validate(createMenuSchema),
+  create,
 );
+
 
 export default router;

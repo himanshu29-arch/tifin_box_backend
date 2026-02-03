@@ -181,3 +181,31 @@ export const markOrderPaid = async (orderId: string) => {
     data: { status: "PAID" },
   });
 };
+/**
+ * Customer: Get active orders (for tracking & badge)
+ */
+export const getActiveOrders = async (userId: string) => {
+  return prisma.order.findMany({
+    where: {
+      userId,
+      status: {
+        in: ["PLACED", "ACCEPTED", "PREPARED", "OUT_FOR_DELIVERY"],
+      },
+    },
+    orderBy: { createdAt: "desc" },
+    include: {
+      items: {
+        include: {
+          menuItem: {
+            select: {
+              name: true,
+              imageUrl: true,
+            },
+          },
+        },
+      },
+      address: true,
+      payment: true,
+    },
+  });
+};

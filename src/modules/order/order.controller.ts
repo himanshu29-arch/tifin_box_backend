@@ -8,6 +8,7 @@ import {
   getAllOrders,
   updateOrderStatus,
   markOrderPaid,
+  getActiveOrders,
 } from "./order.service";
 
 /**
@@ -109,6 +110,27 @@ export const markPaid = async (
       success: true,
       message: "Order marked as paid",
       data: payment,
+    });
+  } catch (err) {
+    next(err);
+  }
+};
+
+/**
+ * Customer: Active orders
+ */
+export const activeOrders = async (
+  req: Request,
+  res: Response,
+  next: NextFunction,
+) => {
+  try {
+    const authReq = req as AuthenticatedRequest;
+    const orders = await getActiveOrders(authReq.user.userId);
+
+    res.json({
+      success: true,
+      data: orders,
     });
   } catch (err) {
     next(err);

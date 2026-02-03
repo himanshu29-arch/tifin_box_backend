@@ -1,5 +1,4 @@
 /** @format */
-
 import { z } from "zod";
 
 const nutritionSchema = z.object({
@@ -16,7 +15,6 @@ export const createMenuSchema = z.object({
     categoryId: z.string().uuid(),
     foodType: z.enum(["VEG", "NON_VEG"]),
     tiffinSize: z.enum(["HALF", "FULL"]).optional(),
-    imageUrl: z.string().url().optional(),
     nutrition: z.array(nutritionSchema).optional(),
   }),
 });
@@ -29,7 +27,6 @@ export const updateMenuSchema = z.object({
     categoryId: z.string().uuid().optional(),
     foodType: z.enum(["VEG", "NON_VEG"]).optional(),
     tiffinSize: z.enum(["HALF", "FULL"]).optional(),
-    imageUrl: z.string().url().optional(),
     isAvailable: z.boolean().optional(),
     nutrition: z.array(nutritionSchema).optional(),
   }),

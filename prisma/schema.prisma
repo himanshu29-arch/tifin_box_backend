@@ -18,6 +18,7 @@ enum UserRole {
   CUSTOMER
   CHEF
   ADMIN
+  DELIVERY_AGENT
 }
 
 enum TiffinSize {
@@ -28,6 +29,18 @@ enum TiffinSize {
 enum FoodType {
   VEG
   NON_VEG
+}
+
+enum KitchenType {
+  VEG
+  NON_VEG
+  BOTH
+}
+
+enum AddressType {
+  HOME
+  OFFICE
+  OTHER
 }
 
 enum OrderStatus {
@@ -102,6 +115,10 @@ model Address {
   postcode      String
   mapUrl        String?
 
+  latitude      Float
+  longitude     Float
+  type          AddressType
+
   isDefault Boolean  @default(false)
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
@@ -119,10 +136,17 @@ model Address {
 //
 
 model Kitchen {
-  id          String   @id @default(uuid())
+  id          String      @id @default(uuid())
   name        String
   description String?
-  createdAt   DateTime @default(now())
+
+  imageUrl    String?
+  type        KitchenType
+  latitude    Float?
+  longitude   Float?
+  address     String?
+
+  createdAt   DateTime    @default(now())
 
   menuItems MenuItem[]
   orders    Order[]

@@ -13,6 +13,9 @@ export const createAddress = async (
     landmark?: string;
     postcode: string;
     mapUrl?: string;
+    latitude: number;
+    longitude: number;
+    addressType: "HOME" | "WORK" | "OTHER";
     isDefault?: boolean;
   },
 ) => {
@@ -30,6 +33,7 @@ export const createAddress = async (
     },
   });
 };
+
 
 export const getMyAddresses = async (userId: string) => {
   return prisma.address.findMany({
@@ -63,6 +67,7 @@ export const updateAddress = async (
     data,
   });
 };
+
 
 export const deleteAddress = async (userId: string, addressId: string) => {
   const address = await prisma.address.findUnique({

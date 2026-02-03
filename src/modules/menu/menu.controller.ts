@@ -8,9 +8,23 @@ import {
   getPublicMenu,
 } from "./menu.service";
 import { uploadImageToGCP } from "../../utils/uploadToGcp";
+
 export async function create(req: Request, res: Response, next: NextFunction) {
   try {
-    const menu = await createMenuItem(req.body);
+    const imageUrl = req.file
+      ? await uploadImageToGCP(req.file, "menu-items")
+      : undefined;
+
+    const menu = await createMenuItem({
+      name: req.body.name,
+      description: req.body.description,
+      price: Number(req.body.price),
+      categoryId: req.body.categoryId,
+      foodType: req.body.foodType,
+      tiffinSize: req.body.tiffinSize,
+      nutrition: req.body.nutrition,
+      imageUrl,
+    });
 
     res.json({
       success: true,
@@ -22,14 +36,32 @@ export async function create(req: Request, res: Response, next: NextFunction) {
   }
 }
 
-export async function myMenu(req: Request, res: Response, next: NextFunction) {
+export async function update(req: Request, res: Response, next: NextFunction) {
   try {
-    const menu = await getMyMenu();
+    const imageUrl = req.file
+      ? await uploadImageToGCP(req.file, "menu-items")
+      : undefined;
+
+    const updatedItem = await updateMenuItem(req.params.id, {
+      ...req.body,
+      price: req.body.price ? Number(req.body.price) : undefined,
+      imageUrl,
+    });
 
     res.json({
       success: true,
-      data: menu,
+      message: "Menu item updated successfully",
+      data: updatedItem,
     });
+  } catch (err) {
+    next(err);
+  }
+}
+
+export async function myMenu(req: Request, res: Response, next: NextFunction) {
+  try {
+    const menu = await getMyMenu();
+    res.json({ success: true, data: menu });
   } catch (err) {
     next(err);
   }
@@ -38,26 +70,7 @@ export async function myMenu(req: Request, res: Response, next: NextFunction) {
 export async function toggle(req: Request, res: Response, next: NextFunction) {
   try {
     const item = await toggleMenuItem(req.params.id);
-
-    res.json({
-      success: true,
-      message: "Menu availability updated",
-      data: item,
-    });
-  } catch (err) {
-    next(err);
-  }
-}
-
-export async function update(req: Request, res: Response, next: NextFunction) {
-  try {
-    const updatedItem = await updateMenuItem(req.params.id, req.body);
-
-    res.json({
-      success: true,
-      message: "Menu item updated successfully",
-      data: updatedItem,
-    });
+    res.json({ success: true, data: item });
   } catch (err) {
     next(err);
   }
@@ -74,35 +87,7 @@ export async function publicMenu(
       foodType: req.query.foodType as "VEG" | "NON_VEG",
     });
 
-    res.json({
-      success: true,
-      data: menu,
-    });
-  } catch (err) {
-    next(err);
-  }
-}
-
-
-export async function uploadMenuImage(
-  req: Request,
-  res: Response,
-  next: NextFunction,
-) {
-  try {
-    if (!req.file) {
-      throw new Error("Image file is required");
-    }
-
-    const imageUrl = await uploadImageToGCP(
-      req.file,
-      "menu",
-    );
-
-    res.json({
-      success: true,
-      imageUrl,
-    });
+    res.json({ success: true, data: menu });
   } catch (err) {
     next(err);
   }

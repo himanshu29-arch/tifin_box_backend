@@ -55,6 +55,15 @@ router.use(authMiddleware);
  *               mapUrl:
  *                 type: string
  *                 example: https://maps.google.com/?q=...
+ *               latitude:
+ *                 type: number
+ *                 example: 21.1234 
+ *               longitude:
+ *                 type: number
+ *                 example: 81.1234
+ *               addressType:
+ *                 type: string
+ *                 enum: [HOME, WORK, OTHER]      
  *     responses:
  *       200:
  *         description: Address added successfully
@@ -111,6 +120,13 @@ router.get("/", list);
  *                 type: string
  *               mapUrl:
  *                 type: string
+ *               latitude:
+ *                 type: number
+ *               longitude:
+ *                 type: number
+ *               addressType:
+ *                 type: string
+ *                 enum: [HOME, WORK, OTHER]
  *     responses:
  *       200:
  *         description: Address updated successfully

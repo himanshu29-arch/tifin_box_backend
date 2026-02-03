@@ -1,0 +1,99 @@
+import prisma from "../src/config/prisma";
+import bcrypt from "bcrypt";
+
+async function main() {
+  console.log("🌱 Seeding database...");
+
+  /* 🔐 ONE-TIME GUARD (VERY IMPORTANT) */
+  const existingKitchen = await prisma.kitchen.findFirst();
+  if (existingKitchen) {
+    console.log("⚠️ Seed already applied. Skipping...");
+    return;
+  }
+
+  /* ---------------- USERS ---------------- */
+  const passwordHash = await bcrypt.hash("password123", 10);
+
+  const admin = await prisma.user.create({
+    data: {
+      name: "Admin",
+      email: "admin@tifunbox.com",
+      phone: "9000000000",
+      role: "ADMIN",
+      passwordHash,
+      isActive: true,
+    },
+  });
+
+  const customer = await prisma.user.create({
+    data: {
+      name: "Test Customer",
+      email: "customer@tifunbox.com",
+      phone: "9111111111",
+      role: "CUSTOMER",
+      passwordHash,
+      isActive: true,
+    },
+  });
+
+  /* ---------------- KITCHEN ---------------- */
+  const kitchen = await prisma.kitchen.create({
+    data: {
+      name: "TifunBox Central Kitchen",
+      description: "Home style daily tiffin service",
+    },
+  });
+
+  /* ---------------- CATEGORIES ---------------- */
+  const categories = await Promise.all(
+    ["Tiffin", "Dosa", "Cake", "Fried Rice", "Paneer"].map(name =>
+      prisma.category.create({ data: { name } })
+    )
+  );
+
+  /* ---------------- MENU ITEMS ---------------- */
+  await prisma.menuItem.createMany({
+    data: [
+      {
+        name: "Veg Thali",
+        price: 150,
+        foodType: "VEG",
+        kitchenId: kitchen.id,
+        categoryId: categories[0].id,
+        isAvailable: true,
+      },
+      {
+        name: "Paneer Butter Masala",
+        price: 180,
+        foodType: "VEG",
+        kitchenId: kitchen.id,
+        categoryId: categories[4].id,
+        isAvailable: true,
+      },
+    ],
+  });
+
+  /* ---------------- ADDRESS ---------------- */
+  await prisma.address.create({
+    data: {
+      userId: customer.id,
+      receiverName: "Test Customer",
+      contactNumber: "9111111111",
+      houseNumber: "A-203",
+      sector: "Sector 21",
+      postcode: "751024",
+      isDefault: true,
+    },
+  });
+
+  console.log("✅ Seeding completed successfully");
+}
+
+main()
+  .catch(err => {
+    console.error("❌ Seed failed", err);
+    process.exit(1);
+  })
+  .finally(async () => {
+    await prisma.$disconnect();
+  });

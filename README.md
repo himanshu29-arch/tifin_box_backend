@@ -161,3 +161,12 @@ docker compose exec backend npx prisma migrate dev
 
 
 Swagger docs at http://localhost:3000/api-docs
+
+http://rkcg4ookook08s88scksc00w.147.93.87.62.sslip.io/api-docs/#/Category/get_api_categories
+
+ls
+echo $DATABASE_URL
+npx prisma migrate deploy
+
+npx prisma generate
+npx prisma db seed

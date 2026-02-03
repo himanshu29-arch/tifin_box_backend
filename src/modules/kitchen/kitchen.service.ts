@@ -9,6 +9,11 @@ import { ApiError } from "../../utils/api-error";
 export const createKitchen = async (data: {
   name: string;
   description?: string;
+  imageUrl?: string;
+  type: "VEG" | "NON_VEG" | "BOTH";
+  latitude?: number;
+  longitude?: number;
+  address?: string;
 }) => {
   const existing = await prisma.kitchen.findFirst();
 
@@ -21,12 +26,18 @@ export const createKitchen = async (data: {
   });
 };
 
+
 /**
  * Admin: update kitchen
  */
 export const updateKitchen = async (data: {
   name?: string;
   description?: string;
+  imageUrl?: string;
+  type?: "VEG" | "NON_VEG" | "BOTH";
+  latitude?: number;
+  longitude?: number;
+  address?: string;
 }) => {
   const kitchen = await prisma.kitchen.findFirst();
 
@@ -39,9 +50,15 @@ export const updateKitchen = async (data: {
     data: {
       name: data.name ?? kitchen.name,
       description: data.description ?? kitchen.description,
+      imageUrl: data.imageUrl ?? kitchen.imageUrl,
+      type: data.type ?? kitchen.type,
+      latitude: data.latitude ?? kitchen.latitude,
+      longitude: data.longitude ?? kitchen.longitude,
+      address: data.address ?? kitchen.address,
     },
   });
 };
+
 
 
 /**

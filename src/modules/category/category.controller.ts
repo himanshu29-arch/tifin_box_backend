@@ -5,6 +5,7 @@ import {
   getCategories,
   updateCategory,
 } from "./category.service";
+import { uploadImageToGCP } from "../../utils/uploadToGcp";
 
 export const create = async (
   req: Request,
@@ -12,12 +13,16 @@ export const create = async (
   next: NextFunction,
 ) => {
   try {
-    const category = await createCategory(req.body);
+    const imageUrl = req.file
+      ? await uploadImageToGCP(req.file, "categories")
+      : undefined;
 
-    res.json({
-      success: true,
-      data: category,
+    const category = await createCategory({
+      name: req.body.name,
+      imageUrl,
     });
+
+    res.json({ success: true, data: category });
   } catch (err) {
     next(err);
   }
@@ -30,11 +35,7 @@ export const list = async (
 ) => {
   try {
     const categories = await getCategories();
-
-    res.json({
-      success: true,
-      data: categories,
-    });
+    res.json({ success: true, data: categories });
   } catch (err) {
     next(err);
   }
@@ -46,12 +47,16 @@ export const update = async (
   next: NextFunction,
 ) => {
   try {
-    const category = await updateCategory(req.params.id, req.body);
+    const imageUrl = req.file
+      ? await uploadImageToGCP(req.file, "categories")
+      : undefined;
 
-    res.json({
-      success: true,
-      data: category,
+    const category = await updateCategory(req.params.id, {
+      name: req.body.name,
+      imageUrl,
     });
+
+    res.json({ success: true, data: category });
   } catch (err) {
     next(err);
   }

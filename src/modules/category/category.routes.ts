@@ -1,10 +1,15 @@
 /** @format */
+
 import { Router } from "express";
 import { create, list, update } from "./category.controller";
 import { authMiddleware } from "../../middleware/auth.middleware";
 import { requireRole } from "../../middleware/role.middleware";
 import { validate } from "../../middleware/validate.middleware";
-import { createCategorySchema, updateCategorySchema } from "./category.schema";
+import {
+  createCategorySchema,
+  updateCategorySchema,
+} from "./category.schema";
+import { upload } from "../../middleware/upload.middleware";
 
 const router = Router();
 
@@ -19,7 +24,7 @@ const router = Router();
  *     requestBody:
  *       required: true
  *       content:
- *         application/json:
+ *         multipart/form-data:
  *           schema:
  *             type: object
  *             required: [name]
@@ -27,17 +32,18 @@ const router = Router();
  *               name:
  *                 type: string
  *                 example: Tiffin
- *               imageUrl:
+ *               image:
  *                 type: string
- *                 example: https://cdn.example.com/tiffin.png
+ *                 format: binary
  *     responses:
  *       200:
  *         description: Category created successfully
  */
 router.post(
   "/",
-  // authMiddleware,
-  // requireRole("ADMIN"),
+  authMiddleware,
+  requireRole("ADMIN"),
+  upload.single("image"),
   validate(createCategorySchema),
   create,
 );
@@ -66,28 +72,29 @@ router.get("/", list);
  *       - in: path
  *         name: id
  *         required: true
- *         description: Category ID
  *         schema:
  *           type: string
  *     requestBody:
  *       required: true
  *       content:
- *         application/json:
+ *         multipart/form-data:
  *           schema:
  *             type: object
  *             properties:
  *               name:
  *                 type: string
- *               imageUrl:
+ *               image:
  *                 type: string
+ *                 format: binary
  *     responses:
  *       200:
  *         description: Category updated successfully
  */
 router.put(
   "/:id",
-  // authMiddleware,
-  // requireRole("ADMIN"),
+  authMiddleware,
+  requireRole("ADMIN"),
+  upload.single("image"),
   validate(updateCategorySchema),
   update,
 );
