@@ -67,33 +67,46 @@ const categories = await Promise.all(
 );
 
   /* ---------------- MENU ITEMS ---------------- */
-await prisma.menuItem.create({
-  data: {
-    name: "Veg Thali",
-    price: 150,
-    foodType: "VEG",
-    kitchenId: kitchen.id,
-    categoryId: categories[0].id,
-    isAvailable: true,
-  },
-});
+/* ---------------- MENU ITEMS ---------------- */
+const existingMenu = await prisma.menuItem.findFirst();
+
+if (!existingMenu) {
+  await prisma.menuItem.create({
+    data: {
+      name: "Veg Thali",
+      price: 150,
+      foodType: "VEG",
+      kitchenId: kitchen.id,
+      categoryId: categories[0].id,
+      isAvailable: true,
+    },
+  });
+}
+
 
 
   /* ---------------- ADDRESS ---------------- */
-await prisma.address.create({
-  data: {
-    userId: customer.id,
-    receiverName: "Test Customer",
-    contactNumber: "9111111111",
-    houseNumber: "A-203",
-    sector: "Sector 21",
-    postcode: "751024",
-    latitude: 20.2961,
-    longitude: 85.8245,
-    type: "HOME",
-    isDefault: true,
-  },
+const existingAddress = await prisma.address.findFirst({
+  where: { userId: customer.id },
 });
+
+if (!existingAddress) {
+  await prisma.address.create({
+    data: {
+      userId: customer.id,
+      receiverName: "Test Customer",
+      contactNumber: "9111111111",
+      houseNumber: "A-203",
+      sector: "Sector 21",
+      postcode: "751024",
+      latitude: 20.2961,
+      longitude: 85.8245,
+      type: "HOME",
+      isDefault: true,
+    },
+  });
+}
+
 
 
   console.log("✅ Seeding completed successfully");
