@@ -56,11 +56,15 @@ if (!kitchen) {
 
 
   /* ---------------- CATEGORIES ---------------- */
-  const categories = await Promise.all(
-    ["Tiffin", "Dosa", "Cake", "Fried Rice", "Paneer"].map(name =>
-      prisma.category.create({ data: { name } })
-    )
-  );
+const categories = await Promise.all(
+  ["Tiffin", "Dosa", "Cake", "Fried Rice", "Paneer"].map(name =>
+    prisma.category.upsert({
+      where: { name },
+      update: {},
+      create: { name },
+    })
+  )
+);
 
   /* ---------------- MENU ITEMS ---------------- */
   await prisma.menuItem.createMany({
