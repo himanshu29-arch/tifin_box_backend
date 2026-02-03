@@ -15,7 +15,7 @@ export const createAddress = async (
     mapUrl?: string;
     latitude: number;
     longitude: number;
-    addressType: "HOME" | "WORK" | "OTHER";
+    type: "HOME" | "OFFICE" | "OTHER";
     isDefault?: boolean;
   },
 ) => {
@@ -29,10 +29,11 @@ export const createAddress = async (
   return prisma.address.create({
     data: {
       userId,
-      ...data,
+      ...data, // contains `type`
     },
   });
 };
+
 
 
 export const getMyAddresses = async (userId: string) => {

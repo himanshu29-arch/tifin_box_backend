@@ -61,7 +61,7 @@ router.use(authMiddleware);
  *               longitude:
  *                 type: number
  *                 example: 81.1234
- *               addressType:
+ *               type:
  *                 type: string
  *                 enum: [HOME, WORK, OTHER]      
  *     responses:
@@ -124,7 +124,7 @@ router.get("/", list);
  *                 type: number
  *               longitude:
  *                 type: number
- *               addressType:
+ *               type:
  *                 type: string
  *                 enum: [HOME, WORK, OTHER]
  *     responses:

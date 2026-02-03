@@ -11,11 +11,9 @@ export const createAddressSchema = z.object({
     landmark: z.string().optional(),
     postcode: z.string().min(4),
     mapUrl: z.string().url().optional(),
-
     latitude: z.number(),
     longitude: z.number(),
-    addressType: z.enum(["HOME", "WORK", "OTHER"]),
-
+    type: z.enum(["HOME", "OFFICE", "OTHER"]),
     isDefault: z.boolean().optional(),
   }),
 });
@@ -29,11 +27,9 @@ export const updateAddressSchema = z.object({
     landmark: z.string().optional(),
     postcode: z.string().min(4).optional(),
     mapUrl: z.string().url().optional(),
-
     latitude: z.number().optional(),
     longitude: z.number().optional(),
-    addressType: z.enum(["HOME", "WORK", "OTHER"]).optional(),
-
+    type: z.enum(["HOME", "OFFICE", "OTHER"]).optional(),
     isDefault: z.boolean().optional(),
   }),
 });
