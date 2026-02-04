@@ -21,12 +21,36 @@ const router = Router();
  * /api/menu:
  *   get:
  *     summary: View menu (Customer)
+ *     description: >
+ *       Returns available menu items.
+ *       All filters are optional and can be combined.
  *     tags: [Menu]
+ *     parameters:
+ *       - in: query
+ *         name: kitchenId
+ *         required: false
+ *         description: Filter menu by kitchen
+ *         schema:
+ *           type: string
+ *       - in: query
+ *         name: categoryId
+ *         required: false
+ *         description: Filter menu by category
+ *         schema:
+ *           type: string
+ *       - in: query
+ *         name: foodType
+ *         required: false
+ *         description: Filter by food type
+ *         schema:
+ *           type: string
+ *           enum: [VEG, NON_VEG]
  *     responses:
  *       200:
  *         description: List of available menu items
  */
 router.get("/", publicMenu);
+
 
 /**
  * @swagger

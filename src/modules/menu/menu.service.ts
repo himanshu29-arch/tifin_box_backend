@@ -132,22 +132,38 @@ export const updateMenuItem = async (
  * Public: Customer menu (filters)
  */
 export const getPublicMenu = async (filters: {
+  kitchenId?: string;
   categoryId?: string;
   foodType?: "VEG" | "NON_VEG";
 }) => {
-  const kitchen = await getKitchen();
-
   return prisma.menuItem.findMany({
     where: {
-      kitchenId: kitchen.id,
       isAvailable: true,
-      categoryId: filters.categoryId,
-      foodType: filters.foodType,
+
+      ...(filters.kitchenId && {
+        kitchenId: filters.kitchenId,
+      }),
+
+      ...(filters.categoryId && {
+        categoryId: filters.categoryId,
+      }),
+
+      ...(filters.foodType && {
+        foodType: filters.foodType,
+      }),
     },
     include: {
       category: true,
       nutrition: true,
+      kitchen: {
+        select: {
+          id: true,
+          name: true,
+          type: true,
+        },
+      },
     },
     orderBy: { createdAt: "desc" },
   });
 };
+

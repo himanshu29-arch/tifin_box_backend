@@ -83,12 +83,18 @@ export async function publicMenu(
 ) {
   try {
     const menu = await getPublicMenu({
-      categoryId: req.query.categoryId as string,
-      foodType: req.query.foodType as "VEG" | "NON_VEG",
+      kitchenId: req.query.kitchenId as string | undefined,
+      categoryId: req.query.categoryId as string | undefined,
+      foodType: req.query.foodType as "VEG" | "NON_VEG" | undefined,
     });
 
-    res.json({ success: true, data: menu });
+    res.json({
+      success: true,
+      count: menu.length,
+      data: menu,
+    });
   } catch (err) {
     next(err);
   }
 }
+
