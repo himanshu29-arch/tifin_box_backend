@@ -51,7 +51,6 @@ const router = Router();
  */
 router.get("/", publicMenu);
 
-
 /**
  * @swagger
  * /api/menu:
@@ -63,27 +62,19 @@ router.get("/", publicMenu);
  *     requestBody:
  *       required: true
  *       content:
- *         application/json:
+ *         multipart/form-data:
  *           schema:
  *             type: object
- *             required:
- *               - name
- *               - price
- *               - categoryId
- *               - foodType
+ *             required: [name, price, categoryId, foodType]
  *             properties:
  *               name:
  *                 type: string
- *                 example: Paneer Thali
  *               description:
  *                 type: string
- *                 example: North Indian thali with paneer curry
  *               price:
  *                 type: number
- *                 example: 180
  *               categoryId:
  *                 type: string
- *                 example: c3b1d0a4-xxxx
  *               foodType:
  *                 type: string
  *                 enum: [VEG, NON_VEG]
@@ -91,34 +82,89 @@ router.get("/", publicMenu);
  *                 type: string
  *                 enum: [HALF, FULL]
  *               nutrition:
- *                 type: array
- *                 items:
- *                   type: object
- *                   required: [key, value]
- *                   properties:
- *                     key:
- *                       type: string
- *                       example: Calories
- *                     value:
- *                       type: string
- *                       example: "350"
- *                     unit:
- *                       type: string
- *                       example: kcal
- *               imageUrl:
  *                 type: string
- *                 example: https://storage.googleapis.com/bucket/menu/img.png
- *     responses:
- *       200:
- *         description: Menu item created successfully
+ *                 description: JSON string
+ *               image:
+ *                 type: string
+ *                 format: binary
  */
 router.post(
   "/",
   authMiddleware,
   requireRole("CHEF"),
+  upload.single("image"),
   validate(createMenuSchema),
   create,
 );
+
+// /**
+//  * @swagger
+//  * /api/menu:
+//  *   post:
+//  *     summary: Create menu item (Chef only)
+//  *     tags: [Menu]
+//  *     security:
+//  *       - bearerAuth: []
+//  *     requestBody:
+//  *       required: true
+//  *       content:
+//  *         application/json:
+//  *           schema:
+//  *             type: object
+//  *             required:
+//  *               - name
+//  *               - price
+//  *               - categoryId
+//  *               - foodType
+//  *             properties:
+//  *               name:
+//  *                 type: string
+//  *                 example: Paneer Thali
+//  *               description:
+//  *                 type: string
+//  *                 example: North Indian thali with paneer curry
+//  *               price:
+//  *                 type: number
+//  *                 example: 180
+//  *               categoryId:
+//  *                 type: string
+//  *                 example: c3b1d0a4-xxxx
+//  *               foodType:
+//  *                 type: string
+//  *                 enum: [VEG, NON_VEG]
+//  *               tiffinSize:
+//  *                 type: string
+//  *                 enum: [HALF, FULL]
+//  *               nutrition:
+//  *                 type: array
+//  *                 items:
+//  *                   type: object
+//  *                   required: [key, value]
+//  *                   properties:
+//  *                     key:
+//  *                       type: string
+//  *                       example: Calories
+//  *                     value:
+//  *                       type: string
+//  *                       example: "350"
+//  *                     unit:
+//  *                       type: string
+//  *                       example: kcal
+//  *               imageUrl:
+//  *                 type: string
+//  *                 example: https://storage.googleapis.com/bucket/menu/img.png
+//  *     responses:
+//  *       200:
+//  *         description: Menu item created successfully
+//  */
+// router.post(
+//   "/",
+//   authMiddleware,
+//   requireRole("CHEF"),
+//   upload.single("image"),
+//   validate(createMenuSchema),
+//   create,
+// );
 
 /**
  * @swagger
@@ -180,6 +226,7 @@ router.put(
   "/:id",
   authMiddleware,
   requireRole("CHEF"),
+  upload.single("image"),
   validate(updateMenuSchema),
   update,
 );
@@ -205,51 +252,6 @@ router.put(
  */
 router.patch("/:id/toggle", authMiddleware, requireRole("CHEF"), toggle);
 
-/**
- * @swagger
- * /api/menu:
- *   post:
- *     summary: Create menu item (Chef only)
- *     tags: [Menu]
- *     security:
- *       - bearerAuth: []
- *     requestBody:
- *       required: true
- *       content:
- *         multipart/form-data:
- *           schema:
- *             type: object
- *             required: [name, price, categoryId, foodType]
- *             properties:
- *               name:
- *                 type: string
- *               description:
- *                 type: string
- *               price:
- *                 type: number
- *               categoryId:
- *                 type: string
- *               foodType:
- *                 type: string
- *                 enum: [VEG, NON_VEG]
- *               tiffinSize:
- *                 type: string
- *                 enum: [HALF, FULL]
- *               nutrition:
- *                 type: string
- *                 description: JSON string
- *               image:
- *                 type: string
- *                 format: binary
- */
-router.post(
-  "/",
-  authMiddleware,
-  requireRole("CHEF"),
-  upload.single("image"),
-  validate(createMenuSchema),
-  create,
-);
 
 
 export default router;

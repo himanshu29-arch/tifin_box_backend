@@ -4,9 +4,9 @@ import bcrypt from "bcrypt";
 async function main() {
   console.log("🌱 Seeding database...");
 
-  /* ---------------- USERS ---------------- */
   const passwordHash = await bcrypt.hash("password123", 10);
 
+  /* ---------------- USERS ---------------- */
   const admin = await prisma.user.upsert({
     where: { email: "admin@tifunbox.com" },
     update: {},
@@ -15,6 +15,19 @@ async function main() {
       email: "admin@tifunbox.com",
       phone: "9000000000",
       role: "ADMIN",
+      passwordHash,
+      isActive: true,
+    },
+  });
+
+  const chef = await prisma.user.upsert({
+    where: { email: "chef@tifunbox.com" },
+    update: {},
+    create: {
+      name: "Test Chef",
+      email: "cheff@tifunbox.com",
+      phone: "9222222222",
+      role: "CHEF",
       passwordHash,
       isActive: true,
     },
@@ -32,6 +45,8 @@ async function main() {
       isActive: true,
     },
   });
+
+  console.log("👥 Users ensured");
 
   /* ---------------- KITCHEN ---------------- */
   let kitchen = await prisma.kitchen.findFirst();
@@ -62,8 +77,8 @@ async function main() {
         where: { name },
         update: {},
         create: { name },
-      }),
-    ),
+      })
+    )
   );
 
   console.log(`📦 Categories ensured (${categories.length})`);
@@ -72,6 +87,9 @@ async function main() {
   const existingMenu = await prisma.menuItem.findFirst();
 
   if (!existingMenu) {
+    const tiffinCategory = categories.find((c) => c.name === "Tiffin")!;
+    const paneerCategory = categories.find((c) => c.name === "Paneer")!;
+
     await prisma.menuItem.createMany({
       data: [
         {
@@ -79,7 +97,7 @@ async function main() {
           price: 150,
           foodType: "VEG",
           kitchenId: kitchen.id,
-          categoryId: categories.find(c => c.name === "Tiffin")!.id,
+          categoryId: tiffinCategory.id,
           isAvailable: true,
         },
         {
@@ -87,11 +105,10 @@ async function main() {
           price: 180,
           foodType: "VEG",
           kitchenId: kitchen.id,
-          categoryId: categories.find(c => c.name === "Paneer")!.id,
+          categoryId: paneerCategory.id,
           isAvailable: true,
         },
       ],
-      skipDuplicates: true,
     });
 
     console.log("🍽️ Menu items created");
@@ -100,12 +117,12 @@ async function main() {
   }
 
   /* ---------------- ADDRESS ---------------- */
-  const existingAddress = await prisma.address.findFirst({
+  let address = await prisma.address.findFirst({
     where: { userId: customer.id },
   });
 
-  if (!existingAddress) {
-    await prisma.address.create({
+  if (!address) {
+    address = await prisma.address.create({
       data: {
         userId: customer.id,
         receiverName: "Test Customer",
@@ -119,10 +136,49 @@ async function main() {
         isDefault: true,
       },
     });
-
     console.log("🏠 Address created");
   } else {
     console.log("🏠 Address already exists");
+  }
+
+  /* ---------------- ORDER ---------------- */
+  const existingOrder = await prisma.order.findFirst();
+
+  if (!existingOrder) {
+    const menuItems = await prisma.menuItem.findMany({
+      where: { kitchenId: kitchen.id },
+    });
+
+    const subtotal = menuItems.reduce((sum, i) => sum + i.price, 0);
+
+    const order = await prisma.order.create({
+      data: {
+        userId: customer.id,
+        kitchenId: kitchen.id,
+        addressId: address.id,
+        status: "PLACED",
+        subtotal,
+        totalAmount: subtotal,
+        paymentMode: "COD",
+        items: {
+          create: menuItems.map((item) => ({
+            menuItemId: item.id,
+            quantity: 1,
+            price: item.price,
+          })),
+        },
+        payment: {
+          create: {
+            mode: "COD",
+            status: "PENDING",
+          },
+        },
+      },
+    });
+
+    console.log("📦 Order created:", order.id);
+  } else {
+    console.log("📦 Order already exists");
   }
 
   console.log("✅ Seeding completed successfully");

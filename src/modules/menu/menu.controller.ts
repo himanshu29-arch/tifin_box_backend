@@ -15,6 +15,10 @@ export async function create(req: Request, res: Response, next: NextFunction) {
       ? await uploadImageToGCP(req.file, "menu-items")
       : undefined;
 
+    const nutrition = req.body.nutrition
+      ? JSON.parse(req.body.nutrition)
+      : undefined;
+
     const menu = await createMenuItem({
       name: req.body.name,
       description: req.body.description,
@@ -22,7 +26,7 @@ export async function create(req: Request, res: Response, next: NextFunction) {
       categoryId: req.body.categoryId,
       foodType: req.body.foodType,
       tiffinSize: req.body.tiffinSize,
-      nutrition: req.body.nutrition,
+      nutrition,
       imageUrl,
     });
 
