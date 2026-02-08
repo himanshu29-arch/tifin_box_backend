@@ -2,6 +2,7 @@
 import { Request, Response, NextFunction } from "express";
 import {
   createCategory,
+  deleteCategory,
   getCategories,
   updateCategory,
 } from "./category.service";
@@ -57,6 +58,23 @@ export const update = async (
     });
 
     res.json({ success: true, data: category });
+  } catch (err) {
+    next(err);
+  }
+};
+
+export const remove = async (
+  req: Request,
+  res: Response,
+  next: NextFunction,
+) => {
+  try {
+    await deleteCategory(req.params.id);
+
+    res.json({
+      success: true,
+      message: "Category deleted successfully",
+    });
   } catch (err) {
     next(err);
   }

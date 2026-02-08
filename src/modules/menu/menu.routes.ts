@@ -6,7 +6,8 @@ import {
   myMenu,
   toggle,
   update,
-  publicMenu
+  publicMenu,
+  remove
 } from "./menu.controller";
 import { authMiddleware } from "../../middleware/auth.middleware";
 import { requireRole } from "../../middleware/role.middleware";
@@ -252,6 +253,37 @@ router.put(
  */
 router.patch("/:id/toggle", authMiddleware, requireRole("CHEF"), toggle);
 
+/**
+ * @swagger
+ * /api/menu/{id}:
+ *   delete:
+ *     summary: Delete menu item (Chef only)
+ *     tags: [Menu]
+ *     security:
+ *       - bearerAuth: []
+ *     parameters:
+ *       - in: path
+ *         name: id
+ *         required: true
+ *         description: Menu item ID
+ *         schema:
+ *           type: string
+ *     responses:
+ *       200:
+ *         description: Menu item deleted successfully
+ *       404:
+ *         description: Menu item not found
+ *       401:
+ *         description: Unauthorized
+ *       403:
+ *         description: Forbidden
+ */
+router.delete(
+  "/:id",
+  authMiddleware,
+  requireRole("CHEF"),
+  remove,
+);
 
 
 export default router;

@@ -167,3 +167,32 @@ export const getPublicMenu = async (filters: {
   });
 };
 
+/**
+ * Chef: Delete menu item
+ */
+export const deleteMenuItem = async (menuItemId: string) => {
+  const item = await prisma.menuItem.findUnique({
+    where: { id: menuItemId },
+  });
+
+  if (!item) {
+    throw new ApiError("Menu item not found", 404);
+  }
+
+  // 🔥 Important: clean dependent relations first
+  await prisma.nutritionFact.deleteMany({
+    where: { menuItemId },
+  });
+
+  await prisma.cartItem.deleteMany({
+    where: { menuItemId },
+  });
+
+  await prisma.orderItem.deleteMany({
+    where: { menuItemId },
+  });
+
+  return prisma.menuItem.delete({
+    where: { id: menuItemId },
+  });
+};

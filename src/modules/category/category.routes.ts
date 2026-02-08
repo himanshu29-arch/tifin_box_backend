@@ -10,6 +10,7 @@ import {
   updateCategorySchema,
 } from "./category.schema";
 import { upload } from "../../middleware/upload.middleware";
+import { remove } from "../menu/menu.controller";
 
 const router = Router();
 
@@ -98,5 +99,34 @@ router.put(
   validate(updateCategorySchema),
   update,
 );
+
+/**
+ * @swagger
+ * /api/categories/{id}:
+ *   delete:
+ *     summary: Delete category (Admin only)
+ *     tags: [Category]
+ *     security:
+ *       - bearerAuth: []
+ *     parameters:
+ *       - in: path
+ *         name: id
+ *         required: true
+ *         description: Category ID
+ *         schema:
+ *           type: string
+ *     responses:
+ *       200:
+ *         description: Category deleted successfully
+ *       404:
+ *         description: Category not found
+ */
+router.delete(
+  "/:id",
+  authMiddleware,
+  requireRole("ADMIN"),
+  remove,
+);
+
 
 export default router;

@@ -178,3 +178,15 @@ Code change
  → deploy
  → prisma migrate deploy (prod)
  → prisma db seed (safe, idempotent)
+
+
+curl -X POST https://<your-domain>/api/menu \
+  -H "Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VySWQiOiI1Y2IxNGNkZi1hZGIzLTQzZGQtYmZhNC0xOGQ1NGI4MmFjOTIiLCJyb2xlIjoiQ0hFRiIsImlhdCI6MTc3MDU2MjQ3NSwiZXhwIjoxNzcxMTY3Mjc1fQ.JfubO2kbFLuu7OlH7MKhbMLHZvt81nMYxSGLgAXXE2g" \
+  -F "name=Veg Thali Deluxe" \
+  -F "description=Full home style veg meal" \
+  -F "price=180" \
+  -F "categoryId=805d18be-c380-4de9-80eb-05981a65efc6" \
+  -F "foodType=VEG" \
+  -F "tiffinSize=FULL" \
+  -F 'nutrition=[{"key":"Calories","value":"450","unit":"kcal"}]' \
+  -F "image=@/path/to/image.jpg"

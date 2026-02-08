@@ -32,3 +32,25 @@ export const updateCategory = async (
     data,
   });
 };
+
+/**
+ * Admin: Delete category
+ */
+export const deleteCategory = async (id: string) => {
+  const category = await prisma.category.findUnique({
+    where: { id },
+  });
+
+  if (!category) {
+    throw new ApiError("Category not found", 404);
+  }
+
+  // 🔥 IMPORTANT: clean dependent menu items first
+  await prisma.menuItem.deleteMany({
+    where: { categoryId: id },
+  });
+
+  return prisma.category.delete({
+    where: { id },
+  });
+};

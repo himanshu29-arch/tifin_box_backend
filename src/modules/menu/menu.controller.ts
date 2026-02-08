@@ -6,6 +6,7 @@ import {
   toggleMenuItem,
   updateMenuItem,
   getPublicMenu,
+  deleteMenuItem,
 } from "./menu.service";
 import { uploadImageToGCP } from "../../utils/uploadToGcp";
 
@@ -102,3 +103,19 @@ export async function publicMenu(
   }
 }
 
+export async function remove(
+  req: Request,
+  res: Response,
+  next: NextFunction,
+) {
+  try {
+    await deleteMenuItem(req.params.id);
+
+    res.json({
+      success: true,
+      message: "Menu item deleted successfully",
+    });
+  } catch (err) {
+    next(err);
+  }
+}
