@@ -25,7 +25,7 @@ async function main() {
     update: {},
     create: {
       name: "Test Chef",
-      email: "cheff@tifunbox.com",
+      email: "chef@tifunbox.com",
       phone: "9222222222",
       role: "CHEF",
       passwordHash,
