@@ -1,7 +1,7 @@
 /** @format */
 
 import { Router } from "express";
-import { create, list, update } from "./category.controller";
+import { create, list, update, remove } from "./category.controller";
 import { authMiddleware } from "../../middleware/auth.middleware";
 import { requireRole } from "../../middleware/role.middleware";
 import { validate } from "../../middleware/validate.middleware";
@@ -10,7 +10,7 @@ import {
   updateCategorySchema,
 } from "./category.schema";
 import { upload } from "../../middleware/upload.middleware";
-import { remove } from "../menu/menu.controller";
+
 
 const router = Router();
 
