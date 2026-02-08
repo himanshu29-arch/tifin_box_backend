@@ -2,7 +2,7 @@ import prisma from "../src/config/prisma";
 import bcrypt from "bcrypt";
 
 async function main() {
-  console.log("🌱 Seeding database (force-safe)...");
+  console.log("🌱 Seeding database (SAFE MODE)...");
 
   const passwordHash = await bcrypt.hash("password123", 10);
 
@@ -10,11 +10,7 @@ async function main() {
 
   const admin = await prisma.user.upsert({
     where: { email: "admin@tifunbox.com" },
-    update: {
-      passwordHash,
-      role: "ADMIN",
-      isActive: true,
-    },
+    update: { passwordHash, role: "ADMIN", isActive: true },
     create: {
       name: "Admin",
       email: "admin@tifunbox.com",
@@ -27,11 +23,7 @@ async function main() {
 
   const chef = await prisma.user.upsert({
     where: { email: "chef@tifunbox.com" },
-    update: {
-      passwordHash,
-      role: "CHEF",
-      isActive: true,
-    },
+    update: { passwordHash, role: "CHEF", isActive: true },
     create: {
       name: "Test Chef",
       email: "chef@tifunbox.com",
@@ -44,11 +36,7 @@ async function main() {
 
   const customer = await prisma.user.upsert({
     where: { email: "customer@tifunbox.com" },
-    update: {
-      passwordHash,
-      role: "CUSTOMER",
-      isActive: true,
-    },
+    update: { passwordHash, role: "CUSTOMER", isActive: true },
     create: {
       name: "Test Customer",
       email: "customer@tifunbox.com",
@@ -63,39 +51,26 @@ async function main() {
 
   /* ================= KITCHEN ================= */
 
-let kitchen = await prisma.kitchen.findFirst({
-  where: { name: "TifunBox Central Kitchen" },
-});
-
-if (!kitchen) {
-  kitchen = await prisma.kitchen.create({
-    data: {
-      name: "TifunBox Central Kitchen",
-      description: "Home style daily tiffin service",
-      type: "VEG",
-      imageUrl: "https://storage.googleapis.com/demo/kitchen.png",
-      latitude: 20.2961,
-      longitude: 85.8245,
-      address: "Bhubaneswar, Odisha",
-    },
+  let kitchen = await prisma.kitchen.findFirst({
+    where: { name: "TifunBox Central Kitchen" },
   });
-  console.log("🍳 Kitchen created");
-} else {
-  kitchen = await prisma.kitchen.update({
-    where: { id: kitchen.id },
-    data: {
-      type: "VEG",
-      imageUrl: "https://storage.googleapis.com/demo/kitchen.png",
-      latitude: 20.2961,
-      longitude: 85.8245,
-      address: "Bhubaneswar, Odisha",
-    },
-  });
-  console.log("🍳 Kitchen updated");
-}
 
-
-  console.log("🍳 Kitchen ensured");
+  if (!kitchen) {
+    kitchen = await prisma.kitchen.create({
+      data: {
+        name: "TifunBox Central Kitchen",
+        description: "Home style daily tiffin service",
+        type: "VEG",
+        imageUrl: "https://storage.googleapis.com/demo/kitchen.png",
+        latitude: 20.2961,
+        longitude: 85.8245,
+        address: "Bhubaneswar, Odisha",
+      },
+    });
+    console.log("🍳 Kitchen created");
+  } else {
+    console.log("🍳 Kitchen exists");
+  }
 
   /* ================= CATEGORIES ================= */
 
@@ -113,88 +88,116 @@ if (!kitchen) {
 
   console.log("📦 Categories ensured");
 
-  /* ================= MENU ================= */
+  const tiffinCategory = categories.find(c => c.name === "Tiffin")!;
+  const paneerCategory = categories.find(c => c.name === "Paneer")!;
 
-  await prisma.menuItem.deleteMany(); // 🔥 important for clean menu
+  /* ================= MENU (SAFE UPSERT) ================= */
 
-  await prisma.menuItem.createMany({
-    data: [
-      {
-        name: "Veg Thali",
-        price: 150,
-        foodType: "VEG",
-        kitchenId: kitchen.id,
-        categoryId: categories.find((c) => c.name === "Tiffin")!.id,
-        isAvailable: true,
-      },
-      {
-        name: "Paneer Butter Masala",
-        price: 180,
-        foodType: "VEG",
-        kitchenId: kitchen.id,
-        categoryId: categories.find((c) => c.name === "Paneer")!.id,
-        isAvailable: true,
-      },
-    ],
+  await prisma.menuItem.upsert({
+    where: { id: "menu-veg-thali" },
+    update: {
+      price: 150,
+      isAvailable: true,
+    },
+    create: {
+      id: "menu-veg-thali",
+      name: "Veg Thali",
+      price: 150,
+      foodType: "VEG",
+      kitchenId: kitchen.id,
+      categoryId: tiffinCategory.id,
+      isAvailable: true,
+    },
+  });
+
+  await prisma.menuItem.upsert({
+    where: { id: "menu-paneer-butter-masala" },
+    update: {
+      price: 180,
+      isAvailable: true,
+    },
+    create: {
+      id: "menu-paneer-butter-masala",
+      name: "Paneer Butter Masala",
+      price: 180,
+      foodType: "VEG",
+      kitchenId: kitchen.id,
+      categoryId: paneerCategory.id,
+      isAvailable: true,
+    },
   });
 
   console.log("🍽️ Menu ensured");
 
   /* ================= ADDRESS ================= */
 
-  await prisma.address.deleteMany({ where: { userId: customer.id } });
-
-  const address = await prisma.address.create({
-    data: {
-      userId: customer.id,
-      receiverName: "Test Customer",
-      contactNumber: "9111111111",
-      houseNumber: "A-203",
-      sector: "Sector 21",
-      postcode: "751024",
-      latitude: 20.2961,
-      longitude: 85.8245,
-      type: "HOME",
-      isDefault: true,
-    },
+  let address = await prisma.address.findFirst({
+    where: { userId: customer.id },
   });
 
-  console.log("🏠 Address ensured");
+  if (!address) {
+    address = await prisma.address.create({
+      data: {
+        userId: customer.id,
+        receiverName: "Test Customer",
+        contactNumber: "9111111111",
+        houseNumber: "A-203",
+        sector: "Sector 21",
+        postcode: "751024",
+        latitude: 20.2961,
+        longitude: 85.8245,
+        type: "HOME",
+        isDefault: true,
+      },
+    });
+    console.log("🏠 Address created");
+  } else {
+    console.log("🏠 Address exists");
+  }
 
   /* ================= ORDER ================= */
 
-  await prisma.order.deleteMany();
-
-  const menuItems = await prisma.menuItem.findMany();
-
-  const subtotal = menuItems.reduce((sum, i) => sum + i.price, 0);
-
-  await prisma.order.create({
-    data: {
-      userId: customer.id,
-      kitchenId: kitchen.id,
-      addressId: address.id,
-      status: "PLACED",
-      subtotal,
-      totalAmount: subtotal,
-      paymentMode: "COD",
-      items: {
-        create: menuItems.map((item) => ({
-          menuItemId: item.id,
-          quantity: 1,
-          price: item.price,
-        })),
-      },
-      payment: {
-        create: {
-          mode: "COD",
-          status: "PENDING",
-        },
-      },
-    },
+  const existingOrder = await prisma.order.findFirst({
+    where: { userId: customer.id },
   });
 
-  console.log("📦 Order ensured");
+  if (!existingOrder) {
+    const menuItems = await prisma.menuItem.findMany({
+      where: { kitchenId: kitchen.id },
+    });
+
+    const subtotal = menuItems.reduce((sum, i) => sum + i.price, 0);
+
+    await prisma.order.create({
+      data: {
+        userId: customer.id,
+        kitchenId: kitchen.id,
+        addressId: address.id,
+        status: "PLACED",
+        subtotal,
+        totalAmount: subtotal,
+        paymentMode: "COD",
+        items: {
+          create: menuItems.map((item) => ({
+            menuItemId: item.id,
+            quantity: 1,
+            price: item.price,
+          })),
+        },
+        payment: {
+          create: {
+            mode: "COD",
+            status: "PENDING",
+          },
+        },
+      },
+    });
+
+    console.log("📦 Order created");
+  } else {
+    console.log("📦 Order exists");
+  }
+
   console.log("✅ Seed completed successfully");
 }
 
