@@ -47,9 +47,14 @@ export async function update(req: Request, res: Response, next: NextFunction) {
       ? await uploadImageToGCP(req.file, "menu-items")
       : undefined;
 
+    const nutrition = req.body.nutrition
+      ? JSON.parse(req.body.nutrition)
+      : undefined;
+
     const updatedItem = await updateMenuItem(req.params.id, {
       ...req.body,
       price: req.body.price ? Number(req.body.price) : undefined,
+      nutrition,
       imageUrl,
     });
 
@@ -62,6 +67,7 @@ export async function update(req: Request, res: Response, next: NextFunction) {
     next(err);
   }
 }
+
 
 export async function myMenu(req: Request, res: Response, next: NextFunction) {
   try {
