@@ -102,7 +102,7 @@ export async function loginUser(email: string, password: string) {
     where: { email },
   });
 
-  if (!user || !user.isActive) {
+  if (!user ) { // || !user.isActive
     throw new ApiError("Invalid credentials", 401);
   }
 
