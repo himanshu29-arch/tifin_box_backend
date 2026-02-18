@@ -16,6 +16,7 @@ const resend = new Resend(process.env.RESEND_API_KEY);
 
 export async function sendOtpEmail(email: string, otp: string) {
   try {
+    console.log("FROM_EMAIL:", process.env.FROM_EMAIL);
     const { data, error } = await resend.emails.send({
       from: process.env.FROM_EMAIL!,
       to: email,
