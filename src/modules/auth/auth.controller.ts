@@ -1,5 +1,5 @@
 import { Request, Response, NextFunction } from "express";
-import { registerUser, verifyOtp, loginUser, getMe } from "./auth.service";
+import { registerUser, verifyOtp, loginUser, getMe, forgotPasswordService, resetPasswordService } from "./auth.service";
 import { AuthenticatedRequest } from "../../types/auth-request";
 import { updateProfile as updateProfileService } from "./auth.service";
 export async function register(req: Request, res: Response, next: NextFunction) {
@@ -67,3 +67,34 @@ export async function updateProfile(
 // Notice:
 // No if (!req.user) needed anymore
 // TypeScript guarantees req.user exists
+
+export async function forgotPassword(
+  req: Request,
+  res: Response,
+  next: NextFunction
+) {
+  try {
+    const result = await forgotPasswordService(req.body.email);
+    res.json({ success: true, data: result });
+  } catch (err) {
+    next(err);
+  }
+}
+
+export async function resetPassword(
+  req: Request,
+  res: Response,
+  next: NextFunction
+) {
+  try {
+    const result = await resetPasswordService(
+      req.body.email,
+      req.body.otp,
+      req.body.newPassword
+    );
+
+    res.json({ success: true, data: result });
+  } catch (err) {
+    next(err);
+  }
+}

@@ -1,8 +1,8 @@
 import { Router } from "express";
-import { register, verify, login,me ,updateProfile} from "./auth.controller";
+import { register, verify, login,me ,updateProfile,forgotPassword, resetPassword } from "./auth.controller";
 import { authMiddleware } from "../../middleware/auth.middleware";
 import { validate } from "../../middleware/validate.middleware";
-import { registerSchema, loginSchema, verifyOtpSchema, updateProfileSchema } from "./auth.schema";
+import { registerSchema, loginSchema, verifyOtpSchema, updateProfileSchema,forgotPasswordSchema, resetPasswordSchema } from "./auth.schema";
 const router = Router();
 
 /**
@@ -144,6 +144,30 @@ router.put(
   updateProfile,
 );
 
+/**
+ * @swagger
+ * /api/auth/forgot-password:
+ *   post:
+ *     summary: Send OTP for password reset
+ *     tags: [Auth]
+ */
+router.post(
+  "/forgot-password",
+  validate(forgotPasswordSchema),
+  forgotPassword
+);
 
+/**
+ * @swagger
+ * /api/auth/reset-password:
+ *   post:
+ *     summary: Reset password using OTP
+ *     tags: [Auth]
+ */
+router.post(
+  "/reset-password",
+  validate(resetPasswordSchema),
+  resetPassword
+);
 export default router;
 

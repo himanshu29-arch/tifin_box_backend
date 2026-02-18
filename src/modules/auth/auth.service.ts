@@ -196,3 +196,73 @@ export async function updateProfile(
     },
   });
 }
+
+export async function forgotPasswordService(email: string) {
+  const user = await prisma.user.findUnique({
+    where: { email },
+  });
+
+  if (!user) {
+    throw new ApiError("User not found", 404);
+  }
+
+  const otp = generateOtp();
+
+  await prisma.otp.create({
+    data: {
+      userId: user.id,
+      code: otp,
+      expiresAt: new Date(Date.now() + OTP_EXPIRY_MINUTES * 60 * 1000),
+    },
+  });
+
+  await sendOtpEmail(user.email, otp);
+
+  return { message: "OTP sent for password reset" };
+}
+
+export async function resetPasswordService(
+  email: string,
+  otp: string,
+  newPassword: string
+) {
+  const user = await prisma.user.findUnique({
+    where: { email },
+  });
+
+  if (!user) {
+    throw new ApiError("User not found", 404);
+  }
+
+  const record = await prisma.otp.findFirst({
+    where: {
+      userId: user.id,
+      code: otp,
+      isUsed: false,
+      expiresAt: { gt: new Date() },
+    },
+  });
+
+  if (!record) {
+    throw new ApiError("Invalid or expired OTP", 400);
+  }
+
+  const passwordHash = await bcrypt.hash(
+    newPassword,
+    Number(process.env.BCRYPT_ROUNDS)
+  );
+
+  await prisma.$transaction([
+    prisma.user.update({
+      where: { id: user.id },
+      data: { passwordHash },
+    }),
+    prisma.otp.update({
+      where: { id: record.id },
+      data: { isUsed: true },
+    }),
+  ]);
+
+  return { message: "Password reset successful" };
+}
+
