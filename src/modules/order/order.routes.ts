@@ -90,7 +90,7 @@ router.get("/", authMiddleware, requireRole("ADMIN"), listOrders);
 router.patch(
   "/:id/status",
   authMiddleware,
-  requireRole("ADMIN"),
+  requireRole("ADMIN", "CHEF", "DELIVERY_AGENT"),
   validate(updateOrderStatusSchema),
   updateStatus,
 );
