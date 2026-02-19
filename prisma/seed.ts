@@ -106,16 +106,26 @@ async function main() {
 
   /* ================= CLEAN RELATIONS ================= */
 
-  console.log("🧹 Cleaning menu & order data...");
+console.log("🧹 Cleaning menu & order data...");
 
-  await prisma.orderItem.deleteMany();
-  await prisma.payment.deleteMany();
-  await prisma.order.deleteMany();
-  await prisma.cartItem.deleteMany();
-  await prisma.menuItem.deleteMany();
-  await prisma.address.deleteMany({ where: { userId: customer.id } });
+// 1️⃣ Order related
+await prisma.orderItem.deleteMany();
+await prisma.payment.deleteMany();
+await prisma.order.deleteMany();
 
-  console.log("🗑 Menu + Order cleaned");
+// 2️⃣ Cart related
+await prisma.cartItem.deleteMany();
+
+// 3️⃣ Nutrition (CHILD OF MENU)
+await prisma.nutritionFact.deleteMany();
+
+// 4️⃣ Menu
+await prisma.menuItem.deleteMany();
+
+// 5️⃣ Address
+await prisma.address.deleteMany({ where: { userId: customer.id } });
+
+console.log("🗑 Menu + Order cleaned safely");
 
   /* ================= MENU WITH IMAGE + NUTRITION ================= */
 
